@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan de Impacto — Ejercicio Calibración</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F7F8FA; color: #1A1D23; min-height: 100vh; }
+
+/* NAV */
+.nav { background: white; border-bottom: 1px solid #E5E8EF; position: sticky; top: 0; z-index: 100; display: flex; align-items: center; padding: 0 24px; overflow-x: auto; }
+.nav-brand { font-size: 13px; font-weight: 700; color: #1A1D23; padding: 16px 0; margin-right: 20px; white-space: nowrap; }
+.nav-brand span { color: #5B8BDF; }
+.nav-tabs { display: flex; }
+.nav-tab { font-size: 13px; font-weight: 500; color: #7C85A0; padding: 16px 15px; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.15s; white-space: nowrap; }
+.nav-tab:hover { color: #1A1D23; }
+.nav-tab.active { color: #1A1D23; border-bottom-color: #5B8BDF; font-weight: 600; }
+
+/* PAGES */
+.page { display: none; padding: 36px 24px 80px; max-width: 900px; margin: 0 auto; }
+.page.active { display: block; }
+.page-label { font-size: 11px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; color: #7C85A0; margin-bottom: 6px; }
+.page-title { font-size: 26px; font-weight: 700; color: #1A1D23; margin-bottom: 8px; }
+.page-desc { font-size: 14px; color: #5C6478; line-height: 1.6; max-width: 580px; margin-bottom: 28px; }
+
+/* LEGEND */
+.legend { display: flex; gap: 10px; margin-bottom: 22px; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 8px; background: white; border: 1px solid #E5E8EF; border-radius: 8px; padding: 7px 13px; font-size: 12px; color: #3D4354; }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dot-e1 { background: #B8C6DC; } .dot-e2 { background: #5B8BDF; } .dot-e3 { background: #1A3FAA; }
+
+/* MATRIX */
+.competency { margin-bottom: 12px; border-radius: 12px; overflow: hidden; border: 1px solid #E5E8EF; background: white; }
+.competency-header { display: flex; align-items: center; gap: 14px; padding: 15px 20px; cursor: pointer; user-select: none; transition: background 0.15s; }
+.competency-header:hover { background: #F7F8FA; }
+.competency-header.open { border-bottom: 1px solid #E5E8EF; }
+.comp-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.comp-cat { font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: #7C85A0; margin-bottom: 1px; }
+.comp-name { font-size: 14px; font-weight: 700; color: #1A1D23; }
+.comp-count { font-size: 11px; color: #7C85A0; background: #F2F3F7; padding: 2px 8px; border-radius: 20px; }
+.chevron { width: 16px; height: 16px; color: #B0B8CC; transition: transform 0.2s; flex-shrink: 0; }
+.chevron.open { transform: rotate(180deg); }
+.criteria-list { display: none; padding: 4px 0 8px; }
+.criteria-list.open { display: block; }
+.criterion { border-bottom: 1px solid #F2F3F7; }
+.criterion:last-child { border-bottom: none; }
+.crit-hdr { display: flex; align-items: flex-start; gap: 10px; padding: 12px 20px; cursor: pointer; transition: background 0.12s; }
+.crit-hdr:hover { background: #F7F8FA; }
+.crit-dot { width: 6px; height: 6px; border-radius: 50%; background: #C5CBDA; margin-top: 5px; flex-shrink: 0; }
+.crit-name { font-size: 13px; font-weight: 600; color: #2D3344; margin-bottom: 2px; }
+.crit-sum { font-size: 12px; color: #7C85A0; }
+.crit-chev { width: 14px; height: 14px; color: #C5CBDA; transition: transform 0.2s; flex-shrink: 0; margin-top: 3px; }
+.crit-chev.open { transform: rotate(180deg); }
+.scale-cards { display: none; grid-template-columns: 1fr 1fr 1fr; gap: 8px; padding: 0 20px 14px 36px; }
+.scale-cards.open { display: grid; }
+.sc { border-radius: 8px; padding: 11px 13px; border: 1px solid transparent; }
+.sc.e1 { background: #F4F6FB; border-color: #DDE3EF; }
+.sc.e2 { background: #EEF3FC; border-color: #BDD0F5; }
+.sc.e3 { background: #E8EDF8; border-color: #8FAAE8; }
+.sc-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
+.sc.e1 .sc-tag { color: #7C8FAD; } .sc.e2 .sc-tag { color: #3361BF; } .sc.e3 .sc-tag { color: #1A3FAA; }
+.sc-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.e1 .sc-dot { background: #B8C6DC; } .e2 .sc-dot { background: #5B8BDF; } .e3 .sc-dot { background: #1A3FAA; }
+.sc-sub { font-size: 10px; color: #9AA4BC; margin-bottom: 6px; }
+.sc-text { font-size: 12px; line-height: 1.55; color: #3D4661; }
+.sc.e3 .sc-text { color: #1E3080; }
+.controls { display: flex; gap: 8px; margin-bottom: 16px; justify-content: flex-end; }
+.btn-sm { font-size: 12px; font-weight: 500; color: #5B8BDF; background: none; border: 1px solid #BDD0F5; border-radius: 6px; padding: 5px 12px; cursor: pointer; font-family: inherit; }
+.btn-sm:hover { background: #EEF3FC; }
+
+/* CASO VALENTINA */
+.val-hero { background: linear-gradient(135deg, #1A3FAA, #5B8BDF); border-radius: 14px; padding: 26px 30px; margin-bottom: 24px; color: white; display: flex; align-items: center; gap: 22px; }
+.val-avatar { width: 60px; height: 60px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; }
+.val-info h2 { font-size: 21px; font-weight: 700; margin-bottom: 4px; }
+.val-info p { font-size: 13px; opacity: 0.8; }
+.val-tags { display: flex; gap: 7px; margin-top: 8px; flex-wrap: wrap; }
+.vtag { font-size: 11px; font-weight: 600; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); border-radius: 20px; padding: 2px 9px; }
+.ev-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.ev-card { background: white; border: 1px solid #E5E8EF; border-radius: 10px; padding: 15px 17px; }
+.ev-hdr { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+.ev-icon { font-size: 15px; }
+.ev-title { font-size: 12px; font-weight: 700; color: #1A1D23; }
+.ev-body { font-size: 12.5px; color: #4A5168; line-height: 1.6; }
+.ev-quote { background: #F7F8FA; border-left: 3px solid #DDE3EF; border-radius: 0 6px 6px 0; padding: 7px 11px; margin-top: 9px; font-size: 12px; color: #5C6478; font-style: italic; line-height: 1.5; }
+
+/* EVAL */
+.name-selector { background: white; border: 1px solid #E5E8EF; border-radius: 12px; padding: 22px; margin-bottom: 24px; }
+.name-selector h3 { font-size: 15px; font-weight: 700; margin-bottom: 5px; }
+.name-selector p { font-size: 13px; color: #5C6478; margin-bottom: 14px; }
+.name-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 8px; }
+.name-btn { padding: 9px 6px; border: 2px solid #E5E8EF; border-radius: 8px; background: white; font-size: 13px; font-weight: 500; color: #3D4354; cursor: pointer; transition: all 0.15s; text-align: center; font-family: inherit; }
+.name-btn:hover { border-color: #5B8BDF; color: #5B8BDF; }
+.name-btn.selected { border-color: #5B8BDF; background: #EEF3FC; color: #1A3FAA; font-weight: 700; }
+.name-btn.done { border-color: #4CAF50; background: #E8F5E9; color: #2E7D32; }
+
+.eval-form { display: none; }
+.eval-form.show { display: block; }
+.eval-greeting { background: #EEF3FC; border: 1px solid #BDD0F5; border-radius: 10px; padding: 13px 17px; margin-bottom: 22px; font-size: 13.5px; color: #1A3FAA; font-weight: 500; }
+.eval-comp-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #7C85A0; margin: 22px 0 10px; padding-bottom: 8px; border-bottom: 1px solid #E5E8EF; }
+.eval-crit { background: white; border: 1px solid #E5E8EF; border-radius: 10px; padding: 16px 18px; margin-bottom: 10px; transition: border-color 0.2s; }
+.eval-crit.answered { border-color: #BDD0F5; }
+.eval-crit-name { font-size: 13px; font-weight: 600; color: #1A1D23; margin-bottom: 13px; }
+
+/* SCALE BUTTONS — más notorios */
+.scale-opts { display: flex; gap: 10px; margin-bottom: 12px; }
+.scale-opt {
+  flex: 1; padding: 12px 8px; border-radius: 10px; border: 2.5px solid transparent;
+  font-size: 13px; font-weight: 700; cursor: pointer; text-align: center;
+  transition: all 0.18s; font-family: inherit; letter-spacing: 0.3px;
+}
+.scale-opt.o-e1 { background: #F4F6FB; border-color: #C8D3E8; color: #8FA0BE; }
+.scale-opt.o-e2 { background: #EEF3FC; border-color: #9BBCF0; color: #4474CC; }
+.scale-opt.o-e3 { background: #E8EDF8; border-color: #7099DC; color: #1A3FAA; }
+.scale-opt.o-e1.sel { background: #6B8BB5; border-color: #4A6E9E; color: white; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(107,139,181,0.4); }
+.scale-opt.o-e2.sel { background: #3B6FD4; border-color: #2554B8; color: white; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(59,111,212,0.4); }
+.scale-opt.o-e3.sel { background: #1A3FAA; border-color: #0F2D8A; color: white; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(26,63,170,0.45); }
+.scale-opt:hover:not(.sel) { transform: translateY(-1px); filter: brightness(0.96); }
+
+.scale-opt-label { font-size: 10px; font-weight: 500; margin-top: 3px; opacity: 0.75; }
+.scale-opt.sel .scale-opt-label { opacity: 0.9; }
+
+.comment-lbl { font-size: 11px; color: #9AA4BC; margin-bottom: 5px; font-weight: 500; }
+.comment-inp { width: 100%; border: 1px solid #E5E8EF; border-radius: 7px; padding: 8px 11px; font-size: 12.5px; color: #1A1D23; resize: vertical; min-height: 54px; font-family: inherit; background: #FAFBFC; }
+.comment-inp:focus { outline: none; border-color: #5B8BDF; background: white; }
+
+.eval-progress { background: white; border: 1px solid #E5E8EF; border-radius: 10px; padding: 14px 18px; margin-bottom: 22px; display: flex; align-items: center; gap: 14px; }
+.progress-text { font-size: 13px; font-weight: 600; color: #1A1D23; white-space: nowrap; }
+.progress-bar-track { flex: 1; background: #F2F3F7; border-radius: 20px; height: 8px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: linear-gradient(90deg, #5B8BDF, #1A3FAA); border-radius: 20px; transition: width 0.3s; }
+.progress-pct { font-size: 12px; font-weight: 700; color: #5B8BDF; white-space: nowrap; }
+
+.submit-area { margin-top: 28px; text-align: center; }
+.btn-submit { background: #1A3FAA; color: white; border: none; border-radius: 10px; padding: 14px 44px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.btn-submit:hover:not(:disabled) { background: #2550CC; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(26,63,170,0.3); }
+.btn-submit:disabled { background: #B0B8CC; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* MODAL DE CONFIRMACIÓN */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
+.modal-overlay.show { display: flex; }
+.modal { background: white; border-radius: 16px; padding: 32px 28px; max-width: 440px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+.modal h3 { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+.modal p { font-size: 13.5px; color: #5C6478; line-height: 1.6; margin-bottom: 20px; }
+.modal-summary { background: #F7F8FA; border-radius: 10px; padding: 14px 16px; margin-bottom: 22px; font-size: 12.5px; color: #3D4354; line-height: 1.8; max-height: 220px; overflow-y: auto; }
+.modal-summary .ms-row { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; border-bottom: 1px solid #ECEEF3; }
+.modal-summary .ms-row:last-child { border-bottom: none; }
+.modal-summary .ms-crit { color: #5C6478; font-size: 12px; }
+.modal-summary .ms-scale { font-weight: 700; font-size: 12px; }
+.modal-summary .ms-e1 { color: #6B8BB5; } .modal-summary .ms-e2 { color: #3B6FD4; } .modal-summary .ms-e3 { color: #1A3FAA; }
+.modal-btns { display: flex; gap: 10px; }
+.btn-cancel { flex: 1; padding: 11px; border: 1.5px solid #E5E8EF; border-radius: 9px; background: white; font-size: 13px; font-weight: 600; color: #7C85A0; cursor: pointer; font-family: inherit; }
+.btn-cancel:hover { background: #F7F8FA; }
+.btn-confirm { flex: 2; padding: 11px; border: none; border-radius: 9px; background: #1A3FAA; font-size: 13px; font-weight: 700; color: white; cursor: pointer; font-family: inherit; }
+.btn-confirm:hover { background: #2550CC; }
+
+/* SUCCESS */
+.success-msg { display: none; text-align: center; padding: 60px 20px; }
+.success-msg.show { display: block; }
+.success-icon { font-size: 56px; margin-bottom: 16px; animation: popIn 0.4s ease; }
+@keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.success-msg h3 { font-size: 22px; font-weight: 700; margin-bottom: 10px; }
+.success-msg p { font-size: 14px; color: #5C6478; line-height: 1.6; max-width: 380px; margin: 0 auto; }
+.success-tag { display: inline-block; background: #E8F5E9; color: #2E7D32; font-size: 12px; font-weight: 700; border-radius: 20px; padding: 4px 14px; margin-top: 14px; border: 1px solid #A5D6A7; }
+
+/* RESULTS */
+.lock-box { text-align: center; padding: 60px 20px; }
+.lock-box h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+.lock-box p { font-size: 13px; color: #5C6478; margin-bottom: 22px; }
+.pin-row { display: flex; gap: 10px; justify-content: center; max-width: 300px; margin: 0 auto; }
+.pin-inp { flex: 1; border: 2px solid #E5E8EF; border-radius: 8px; padding: 10px 14px; font-size: 15px; font-family: monospace; text-align: center; }
+.pin-inp:focus { outline: none; border-color: #5B8BDF; }
+.btn-unlock { background: #1A3FAA; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+.pin-err { color: #E53935; font-size: 12px; margin-top: 8px; display: none; }
+.res-panel { display: none; }
+.res-panel.show { display: block; }
+
+/* Results tabs */
+.res-tabs { display: flex; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
+.res-tab { padding: 8px 16px; border-radius: 8px; border: 1.5px solid #E5E8EF; background: white; font-size: 12px; font-weight: 600; color: #7C85A0; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.res-tab:hover { border-color: #5B8BDF; color: #5B8BDF; }
+.res-tab.active { background: #1A3FAA; border-color: #1A3FAA; color: white; }
+
+.res-view { display: none; }
+.res-view.show { display: block; }
+
+.res-summary-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 26px; }
+.res-card { background: white; border: 1px solid #E5E8EF; border-radius: 10px; padding: 16px; text-align: center; }
+.res-num { font-size: 32px; font-weight: 800; color: #1A3FAA; }
+.res-lbl { font-size: 12px; color: #7C85A0; margin-top: 4px; }
+
+/* Individual result */
+.indiv-selector { background: white; border: 1px solid #E5E8EF; border-radius: 12px; padding: 20px; margin-bottom: 22px; }
+.indiv-selector h3 { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+.indiv-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 8px; }
+.indiv-btn { padding: 8px 6px; border: 2px solid #E5E8EF; border-radius: 8px; background: white; font-size: 12px; font-weight: 500; color: #3D4354; cursor: pointer; text-align: center; font-family: inherit; transition: all 0.15s; }
+.indiv-btn:hover { border-color: #5B8BDF; color: #5B8BDF; }
+.indiv-btn.active { background: #1A3FAA; border-color: #1A3FAA; color: white; font-weight: 700; }
+.indiv-btn.no-data { opacity: 0.4; cursor: not-allowed; }
+
+.indiv-result { display: none; }
+.indiv-result.show { display: block; }
+.indiv-header { background: white; border: 1px solid #E5E8EF; border-radius: 10px; padding: 14px 18px; margin-bottom: 14px; display: flex; align-items: center; gap: 12px; }
+.indiv-avatar { width: 40px; height: 40px; border-radius: 50%; background: #EEF3FC; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.indiv-name { font-size: 15px; font-weight: 700; color: #1A1D23; }
+.indiv-sub { font-size: 12px; color: #7C85A0; }
+.indiv-crit-row { background: white; border: 1px solid #E5E8EF; border-radius: 10px; padding: 13px 16px; margin-bottom: 8px; display: flex; align-items: flex-start; gap: 12px; }
+.icr-left { flex: 1; }
+.icr-comp { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: #9AA4BC; margin-bottom: 2px; }
+.icr-name { font-size: 13px; font-weight: 600; color: #1A1D23; }
+.icr-comment { font-size: 12px; color: #5C6478; margin-top: 5px; font-style: italic; }
+.icr-badge { padding: 5px 14px; border-radius: 8px; font-size: 12px; font-weight: 800; flex-shrink: 0; }
+.icr-e1 { background: #6B8BB5; color: white; }
+.icr-e2 { background: #3B6FD4; color: white; }
+.icr-e3 { background: #1A3FAA; color: white; }
+
+/* General results */
+.crit-result-block { background: white; border: 1px solid #E5E8EF; border-radius: 10px; padding: 16px 18px; margin-bottom: 12px; }
+.crb-header { margin-bottom: 12px; }
+.crb-comp { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #9AA4BC; margin-bottom: 2px; }
+.crb-name { font-size: 14px; font-weight: 700; color: #1A1D23; }
+.crb-body { display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-start; }
+.vote-bars { min-width: 160px; flex: 1; }
+.vote-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.vote-lbl { width: 22px; font-size: 11px; font-weight: 700; color: #7C85A0; }
+.vote-track { flex: 1; background: #F2F3F7; border-radius: 4px; height: 12px; overflow: hidden; }
+.vote-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
+.fill-e1 { background: #6B8BB5; } .fill-e2 { background: #3B6FD4; } .fill-e3 { background: #1A3FAA; }
+.vote-n { width: 18px; text-align: right; font-size: 11px; color: #7C85A0; }
+.vote-names { flex: 1; min-width: 160px; }
+.vn-row { display: flex; align-items: flex-start; gap: 7px; margin-bottom: 6px; font-size: 12px; color: #5C6478; }
+.badge { display: inline-block; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 6px; flex-shrink: 0; }
+.b-e1 { background: #6B8BB5; color: white; } .b-e2 { background: #3B6FD4; color: white; } .b-e3 { background: #1A3FAA; color: white; }
+.b-nd { background: #F2F3F7; color: #B0B8CC; }
+.comments-section { margin-top: 12px; padding-top: 12px; border-top: 1px solid #F2F3F7; }
+.comment-item { background: #F7F8FA; border-radius: 6px; padding: 7px 10px; margin-bottom: 5px; font-size: 12px; color: #4A5168; line-height: 1.5; }
+.comment-author { font-weight: 700; color: #1A1D23; margin-right: 5px; }
+
+.btn-export { background: white; color: #1A3FAA; border: 1px solid #BDD0F5; border-radius: 8px; padding: 10px 20px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; margin-top: 16px; }
+.btn-export:hover { background: #EEF3FC; }
+
+@media(max-width:620px){
+  .ev-grid,.scale-cards.open,.name-grid,.res-summary-cards,.indiv-grid{grid-template-columns:1fr;}
+  .scale-opts{flex-direction:column;}
+  .val-hero{flex-direction:column;text-align:center;}
+  .modal-btns{flex-direction:column;}
+  .name-grid{grid-template-columns:repeat(2,1fr);}
+}
+
+.danger-zone { background: white; border: 1px solid #FFD0CC; border-radius: 12px; padding: 20px; margin-top: 24px; }
+.danger-zone h4 { font-size: 13px; font-weight: 700; color: #C62828; margin-bottom: 14px; display: flex; align-items: center; gap: 7px; }
+.danger-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 8px; margin-bottom: 14px; }
+.del-btn { padding: 8px 6px; border: 1.5px solid #FFCDD2; border-radius: 8px; background: white; font-size: 12px; font-weight: 500; color: #C62828; cursor: pointer; text-align: center; font-family: inherit; transition: all 0.15s; }
+.del-btn:hover { background: #FFEBEE; border-color: #EF9A9A; }
+.del-btn.no-data { opacity: 0.35; cursor: not-allowed; }
+.btn-reset { background: white; color: #C62828; border: 1.5px solid #FFCDD2; border-radius: 8px; padding: 10px 20px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+.btn-reset:hover { background: #FFEBEE; }
+
+</style>
+</head>
+<body>
+
+<!-- MODAL DE CONFIRMACIÓN -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal">
+    <h3>¿Confirmás tu evaluación?</h3>
+    <p>Revisá que tus respuestas estén completas antes de enviar. Podés modificarlas después si es necesario.</p>
+    <div class="modal-summary" id="modalSummary"></div>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">Volver a revisar</button>
+      <button class="btn-confirm" onclick="confirmSubmit()">Sí, enviar evaluación ✓</button>
+    </div>
+  </div>
+</div>
+
+<nav class="nav">
+  <div class="nav-brand">Plan de Impacto <span>Líderes</span></div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="showPage('matrix')">📋 Matriz</div>
+    <div class="nav-tab" onclick="showPage('caso')">👤 Caso Valentina</div>
+    <div class="nav-tab" onclick="showPage('eval');initEval()">✏️ Mi evaluación</div>
+    <div class="nav-tab" onclick="showPage('results')">📊 Resultados</div>
+  </div>
+</nav>
+
+<!-- PAGE: MATRIZ -->
+<div class="page active" id="page-matrix">
+  <div class="page-label">CX Human AR · L3</div>
+  <h1 class="page-title">Plan de Impacto — Líderes</h1>
+  <p class="page-desc">Referencia de competencias y escalas. Consultalo mientras evaluás el caso.</p>
+  <div class="legend">
+    <div class="legend-item"><span class="legend-dot dot-e1"></span><strong>E1</strong> — Acompañamiento</div>
+    <div class="legend-item"><span class="legend-dot dot-e2"></span><strong>E2</strong> — Autonomía y complejidad</div>
+    <div class="legend-item"><span class="legend-dot dot-e3"></span><strong>E3</strong> — Escala y referencia (→ L4)</div>
+  </div>
+  <div class="controls">
+    <button class="btn-sm" onclick="toggleAll(true)">Expandir todo</button>
+    <button class="btn-sm" onclick="toggleAll(false)">Contraer todo</button>
+  </div>
+  <div id="matrixBlocks"></div>
+</div>
+
+<!-- PAGE: CASO VALENTINA -->
+<div class="page" id="page-caso">
+  <div class="page-label">Ejercicio de calibración</div>
+  <h1 class="page-title">Caso: Valentina</h1>
+  <p class="page-desc">Leé el caso con atención. Luego, en "Mi evaluación", ubicala en E1, E2 o E3 en cada criterio.</p>
+  <div class="val-hero">
+    <div class="val-avatar">👩‍💼</div>
+    <div class="val-info">
+      <h2>Valentina</h2>
+      <p>Team Leader · 2 años en el rol · Equipo Pago Nube · 8 gurús</p>
+      <div class="val-tags"><span class="vtag">8 meses con este equipo</span><span class="vtag">Rotación interna previa</span><span class="vtag">L3 activo</span></div>
+    </div>
+  </div>
+  <div class="ev-grid">
+    <div class="ev-card">
+      <div class="ev-hdr"><span class="ev-icon">📊</span><span class="ev-title">Análisis y datos</span></div>
+      <div class="ev-body">En la weekly nunca llega con el número solo. Siempre trae el diagnóstico: qué pasó, por qué y con un plan. Sus pares la consultan cuando tienen un problema que no saben cómo leer.
+        <div class="ev-quote">"El TTR cayó 6pp porque el 40% del equipo en OB usa Pending un 80% más que el resto. Acción: training esta semana."</div>
+      </div>
+    </div>
+    <div class="ev-card">
+      <div class="ev-hdr"><span class="ev-icon">🗂️</span><span class="ev-title">Organización y proyectos</span></div>
+      <div class="ev-body">Muy ordenada. Raramente se le escapa un deadline. El año pasado lideró un proyecto de reducción de TTR que terminó siendo adoptado por otros dos equipos del área.
+        <div class="ev-quote">"Valentina documentó el proceso y lo presentó en la Weekly Human. Dos equipos lo replicaron."</div>
+      </div>
+    </div>
+    <div class="ev-card">
+      <div class="ev-hdr"><span class="ev-icon">👥</span><span class="ev-title">Gestión de personas</span></div>
+      <div class="ev-body">Tiene dos gurús con performance en baja desde hace tres meses. Todavía no inició un plan de acción formal con ninguno. Los 1:1 los hace pero son cortos y poco profundos.
+        <div class="ev-quote">"Estoy viendo cómo encararlo." — respuesta cuando se le pregunta por los dos casos.</div>
+      </div>
+    </div>
+    <div class="ev-card">
+      <div class="ev-hdr"><span class="ev-icon">🌡️</span><span class="ev-title">Clima y gestión emocional</span></div>
+      <div class="ev-body">En momentos de presión, el equipo se nota desorganizado y con preguntas que deberían resolver solos. Valentina tiende a absorber la tensión internamente. No generó un espacio real de confianza donde los gurús se expresen con apertura.</div>
+    </div>
+    <div class="ev-card">
+      <div class="ev-hdr"><span class="ev-icon">💬</span><span class="ev-title">Comunicación e influencia</span></div>
+      <div class="ev-body">En la MBR se luce — el liderazgo la reconoce. Pero su equipo no siempre entiende el "para qué" de lo que hace. El propósito no les llega con la misma claridad con que ella lo articula hacia afuera.
+        <div class="ev-quote">"Con el manager habla de impacto. Con el equipo habla de tareas."</div>
+      </div>
+    </div>
+    <div class="ev-card">
+      <div class="ev-hdr"><span class="ev-icon">🚨</span><span class="ev-title">Gestión de crisis</span></div>
+      <div class="ev-body">En el último downtime de Pago Nube coordinó al equipo con claridad, alertó a las áreas correctas y lideró el post mortem con causas raíz y acciones concretas. Sus compañeros la mencionaron como referencia durante esa crisis.</div>
+    </div>
+    <div class="ev-card">
+      <div class="ev-hdr"><span class="ev-icon">🛍️</span><span class="ev-title">Voz del cliente y producto</span></div>
+      <div class="ev-body">Identifica bien los pains recurrentes y acerca información a PMs de forma estructurada. Aún no llegó a proponer cambios de fondo que impacten en el roadmap, pero su análisis es tomado en cuenta en los foros de producto.</div>
+    </div>
+    <div class="ev-card">
+      <div class="ev-hdr"><span class="ev-icon">⚡</span><span class="ev-title">Herramientas e IA</span></div>
+      <div class="ev-body">Usa Zendesk y Tableau de forma avanzada. Integró IA en su propio trabajo y tiene prompts que comparte con el equipo. Todavía no generó una práctica sistemática de adopción ni capacitó a otros TLs.</div>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:8px;">
+    <button class="btn-sm" style="padding:10px 24px;font-size:13px;" onclick="showPage('eval');initEval()">Ir a evaluar →</button>
+  </div>
+</div>
+
+<!-- PAGE: EVALUACIÓN -->
+<div class="page" id="page-eval">
+  <div class="page-label">Tu evaluación</div>
+  <h1 class="page-title">Ubicá a Valentina</h1>
+  <p class="page-desc">Seleccioná tu nombre, ubicala en E1, E2 o E3 en cada criterio y enviá tu evaluación.</p>
+  <div class="name-selector">
+    <h3>¿Quién sos?</h3>
+    <p>Seleccioná tu nombre para guardar tu evaluación.</p>
+    <div class="name-grid" id="nameGrid"></div>
+  </div>
+  <div class="eval-form" id="evalForm">
+    <div class="eval-greeting" id="evalGreeting"></div>
+    <div class="eval-progress">
+      <span class="progress-text" id="progressText">0 de 10 criterios completados</span>
+      <div class="progress-bar-track"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
+      <span class="progress-pct" id="progressPct">0%</span>
+    </div>
+    <div id="evalCriteria"></div>
+    <div class="submit-area">
+      <button class="btn-submit" id="btnSubmit" onclick="openModal()">Revisar y enviar evaluación</button>
+    </div>
+  </div>
+  <div class="success-msg" id="successMsg">
+    <div class="success-icon">✅</div>
+    <h3 id="successName">¡Evaluación enviada!</h3>
+    <p>Tu evaluación quedó registrada correctamente. El facilitador va a compartir los resultados en la dinámica grupal.</p>
+    <span class="success-tag">✓ Guardado en el sistema</span>
+  </div>
+</div>
+
+<!-- PAGE: RESULTADOS -->
+<div class="page" id="page-results">
+  <div class="page-label">Vista de facilitador</div>
+  <h1 class="page-title">Resultados del ejercicio</h1>
+  <p class="page-desc">Acceso protegido — solo para el facilitador.</p>
+  <div class="lock-box" id="lockBox">
+    <div style="font-size:40px;margin-bottom:14px">🔒</div>
+    <h3>Ingresá la clave para ver los resultados</h3>
+    <p>Esta sección es solo para el facilitador de la dinámica.</p>
+    <div class="pin-row">
+      <input type="password" class="pin-inp" id="pinInp" placeholder="Clave" onkeydown="if(event.key==='Enter')unlockResults()">
+      <button class="btn-unlock" onclick="unlockResults()">Ingresar</button>
+    </div>
+    <div class="pin-err" id="pinErr">Clave incorrecta, intentá de nuevo.</div>
+  </div>
+  <div class="res-panel" id="resPanel">
+    <div class="res-summary-cards" id="resSummary"></div>
+    <div class="res-tabs" id="resTabs"></div>
+    <div id="resViewIndiv" class="res-view">
+      <div class="indiv-selector">
+        <h3>Seleccioná un líder para ver su evaluación individual</h3>
+        <div class="indiv-grid" id="indivGrid"></div>
+      </div>
+      <div class="indiv-result" id="indivResult"></div>
+    </div>
+    <div id="resViewGeneral" class="res-view">
+      <div id="resContent"></div>
+      <button class="btn-export" onclick="exportResults()">⬇️ Exportar resumen (texto)</button>
+      <div class="danger-zone">
+        <h4>🗑️ Gestión de evaluaciones</h4>
+        <p style="font-size:12px;color:#7C85A0;margin-bottom:12px;">Borrar una evaluación individual o resetear todo. Esta acción no se puede deshacer.</p>
+        <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:#9AA4BC;margin-bottom:8px;">Borrar evaluación individual</p>
+        <div class="danger-grid" id="delGrid"></div>
+        <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:#9AA4BC;margin:14px 0 8px;">Resetear todo</p>
+        <button class="btn-reset" onclick="resetAll()">🗑️ Borrar todas las evaluaciones</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const NAMES = ['Gabita','Lau','Solci','Cande','Lucio','Luis','Alex','Mai','Mati','Florci'];
+const PIN = 'cx2026';
+const SKEY = 'pilideres_eval_v3';
+
+const MATRIX = [
+  { cat:'Gestión de Talentos', icon:'👥', bg:'#EEF3FC', crits:[
+    { id:'lm', name:'Leadership & Management', sum:'Desarrollar personas, dar feedback y gestionar performance.',
+      e1:'Cumple con las dinámicas pero necesita apoyo para planes de acción, conversaciones difíciles y decisiones de gestión.',
+      e2:'Diseña planes de acción con autonomía, da feedback consistente a todos los perfiles y toma decisiones de gestión con criterio.',
+      e3:'Anticipa desvíos antes de que los datos los muestren, forma perfiles L2 y sus pares lo consultan ante casos complejos.' },
+    { id:'ge', name:'Gestión emocional y clima', sum:'Regular emociones, leer el equipo, construir confianza e intervenir en conflictos.',
+      e1:'Reconoce sus emociones pero no las regula de forma consistente. Tiende a evitar conflictos.',
+      e2:'Regula sus emociones bajo presión, genera seguridad psicológica e interviene en conflictos de forma oportuna.',
+      e3:'Su equipo sostiene un clima positivo incluso en períodos difíciles. Sus pares lo consultan ante situaciones emocionales complejas.' }
+  ]},
+  { cat:'Comunicación Asertiva e Influencia', icon:'💬', bg:'#FFF4E8', crits:[
+    { id:'im', name:'Inspiración y motivación', sum:'Transmitir propósito, sostener compromiso y adaptar la comunicación.',
+      e1:'Genera espacios de cercanía pero necesita apoyo para conectar el trabajo con el propósito y sostener motivación bajo presión.',
+      e2:'Conecta propósito con trabajo diario, adapta su comunicación según el interlocutor y sostiene el compromiso en alta exigencia.',
+      e3:'Su equipo es reconocido en el área por su cohesión. Comunica con influencia desde un gurú hasta un C-level.' }
+  ]},
+  { cat:'Liderazgo Estratégico', icon:'🎯', bg:'#F0FBF0', crits:[
+    { id:'ope', name:'Organización, priorización y ejecución', sum:'Gestionar agenda, coordinar dependencias y cumplir objetivos.',
+      e1:'Necesita apoyo para organizar su agenda, priorizar y sostenerse ante imprevistos.',
+      e2:'Organiza y prioriza con autonomía, resuelve problemas complejos dentro de su scope y planifica con mirada de mediano plazo.',
+      e3:'Destrava cuellos de botella que afectan múltiples equipos. Su criterio de priorización es tomado como referencia por sus pares.' },
+    { id:'gp', name:'Gestión de proyectos', sum:'Impulsar mejoras estructuradas: definir el problema, coordinar y medir resultados.',
+      e1:'Participa en proyectos definidos por otros y necesita apoyo para estructurar iniciativas.',
+      e2:'Lidera proyectos de principio a fin: define el problema, arma el plan, coordina stakeholders y mide resultados.',
+      e3:'Sus proyectos generan cambios estructurales que el área adopta. Es consultado por otros TLs para estructurar los suyos.' }
+  ]},
+  { cat:'Capacidad de Resolución de Problemas', icon:'🔍', bg:'#FFF0F0', crits:[
+    { id:'gc', name:'Gestión de crisis', sum:'Detectar señales, coordinar, comunicar y capturar aprendizajes.',
+      e1:'Sigue protocolos pero necesita apoyo para coordinar al equipo y comunicar con claridad.',
+      e2:'Detecta señales tempranas, define planes con foco en impacto, coordina al equipo y lidera el post mortem.',
+      e3:'Su equipo no necesita dirección constante en una crisis. Sus post mortems generan aprendizajes para todo el área.' },
+    { id:'va', name:'Visión analítica y resolución de problemas', sum:'Diagnosticar con profundidad: causa raíz, KPIs y planes de acción.',
+      e1:'Identifica desvíos y propone hipótesis, pero necesita apoyo para profundizar en causa raíz.',
+      e2:'Combina KPIs, usa Pareto y segmentación. Presenta: qué pasó, por qué, qué sigue.',
+      e3:'Identifica problemas del área antes que otros. Sus hipótesis influyen en decisiones estratégicas.' }
+  ]},
+  { cat:'Espíritu Emprendedor', icon:'⚡', bg:'#F5F0FF', crits:[
+    { id:'ai', name:'Adaptación e innovación con herramientas', sum:'Incorporar y difundir herramientas: Zendesk, IA y automatizaciones.',
+      e1:'Usa correctamente las herramientas. Adopta nuevas cuando se lo indican.',
+      e2:'Usa herramientas de forma avanzada, integra IA de forma autónoma y difunde buenas prácticas.',
+      e3:'Genera en su equipo capacidad autónoma de innovación e identifica automatizaciones que impactan más allá del propio equipo.' }
+  ]},
+  { cat:'Conocimiento Técnico', icon:'📦', bg:'#FFFBE8', crits:[
+    { id:'kh', name:'Know how del producto', sum:'Entender la plataforma, anticipar impacto de cambios y vincularse con PMs.',
+      e1:'Conoce el producto de su scope pero necesita apoyo para entender el impacto de cambios y hablar con PMs.',
+      e2:'Domina los productos de su scope, entiende interdependencias y participa activamente con PMs.',
+      e3:'Anticipa el impacto de cambios antes de que ocurran. PMs y pares lo reconocen como la voz de CX en producto.' }
+  ]},
+  { cat:'Cliente en el Centro', icon:'🛍️', bg:'#F0FBF7', crits:[
+    { id:'ti', name:'Transformación de insights en impacto', sum:'Entender pains del merchant y transformarlos en mejoras concretas.',
+      e1:'Lee tickets e identifica pains frecuentes, pero necesita apoyo para transformarlos en acciones medibles.',
+      e2:'Combina análisis cualitativo y cuantitativo, prioriza por impacto en métricas y mide resultados.',
+      e3:'Sus insights generan cambios en producto o políticas que impactan múltiples equipos.' }
+  ]}
+];
+
+const CRITERIA = MATRIX.flatMap(m => m.crits.map(c => ({...c, comp: m.cat})));
+const SCALE_LABELS = { E1: 'Acompañamiento', E2: 'Autonomía', E3: 'Escala y ref.' };
+
+// ---- render matrix ----
+function renderMatrix() {
+  const el = document.getElementById('matrixBlocks');
+  el.innerHTML = MATRIX.map((m, mi) => `
+    <div class="competency" id="comp-${mi}">
+      <div class="competency-header" onclick="toggleComp(${mi})">
+        <div class="comp-icon" style="background:${m.bg}">${m.icon}</div>
+        <div style="flex:1"><div class="comp-cat">${m.cat}</div><div class="comp-name">${m.cat}</div></div>
+        <span class="comp-count">${m.crits.length} criterio${m.crits.length>1?'s':''}</span>
+        <svg class="chevron" id="chev-${mi}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="criteria-list" id="list-${mi}">
+        ${m.crits.map((c,ci) => `
+          <div class="criterion">
+            <div class="crit-hdr" onclick="toggleCrit('${mi}_${ci}')">
+              <span class="crit-dot"></span>
+              <div style="flex:1"><div class="crit-name">${c.name}</div><div class="crit-sum">${c.sum}</div></div>
+              <svg class="crit-chev" id="cchev-${mi}_${ci}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="scale-cards" id="sc-${mi}_${ci}">
+              <div class="sc e1"><div class="sc-tag"><span class="sc-dot"></span>E1</div><div class="sc-sub">Acompañamiento</div><div class="sc-text">${c.e1}</div></div>
+              <div class="sc e2"><div class="sc-tag"><span class="sc-dot"></span>E2</div><div class="sc-sub">Autonomía</div><div class="sc-text">${c.e2}</div></div>
+              <div class="sc e3"><div class="sc-tag"><span class="sc-dot"></span>E3</div><div class="sc-sub">Escala y referencia</div><div class="sc-text">${c.e3}</div></div>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function toggleComp(i) {
+  const list=document.getElementById('list-'+i), chev=document.getElementById('chev-'+i);
+  const hdr=document.querySelector('#comp-'+i+' .competency-header');
+  [list,chev,hdr].forEach(el=>el&&el.classList.toggle('open'));
+}
+function toggleCrit(id) {
+  [document.getElementById('sc-'+id), document.getElementById('cchev-'+id)].forEach(el=>el&&el.classList.toggle('open'));
+}
+function toggleAll(open) {
+  MATRIX.forEach((_,i)=>{
+    [document.getElementById('list-'+i), document.getElementById('chev-'+i)].forEach(el=>el&&el.classList.toggle('open',open));
+    const hdr=document.querySelector('#comp-'+i+' .competency-header');
+    if(hdr) hdr.classList.toggle('open',open);
+    _.crits.forEach((_,ci)=>{
+      [document.getElementById('sc-'+i+'_'+ci), document.getElementById('cchev-'+i+'_'+ci)].forEach(el=>el&&el.classList.toggle('open',open));
+    });
+  });
+}
+
+// ---- nav ----
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  const map={matrix:0,caso:1,eval:2,results:3};
+  if(map[id]!==undefined) document.querySelectorAll('.nav-tab')[map[id]].classList.add('active');
+}
+
+// ---- storage ----
+async function loadAll() {
+  try { const r=await window.storage.get(SKEY,true); return r?JSON.parse(r.value):{}; } catch(e){return {};}
+}
+async function saveAll(data) {
+  try { await window.storage.set(SKEY,JSON.stringify(data),true); } catch(e){}
+}
+
+// ---- eval state ----
+let currentUser=null, evalData={};
+
+function updateProgress() {
+  const done = CRITERIA.filter(c=>evalData[c.id]&&evalData[c.id].scale).length;
+  const total = CRITERIA.length;
+  const pct = Math.round(done/total*100);
+  document.getElementById('progressText').textContent = `${done} de ${total} criterios completados`;
+  document.getElementById('progressFill').style.width = pct+'%';
+  document.getElementById('progressPct').textContent = pct+'%';
+}
+
+async function initEval() {
+  const all = await loadAll();
+  const grid = document.getElementById('nameGrid');
+  grid.innerHTML = NAMES.map(n=>`
+    <button class="name-btn${all[n]?' done':''}" onclick="selectUser('${n}')">${n}${all[n]?' ✓':''}</button>`).join('');
+  if(currentUser && document.getElementById('evalForm').classList.contains('show')) {
+    // refresh badges only
+  }
+}
+
+async function selectUser(name) {
+  currentUser = name;
+  document.querySelectorAll('.name-btn').forEach(b=>{
+    b.classList.remove('selected');
+    if(b.textContent.replace(' ✓','')===name) b.classList.add('selected');
+  });
+  const all = await loadAll();
+  const existing = all[name]||{};
+  evalData={};
+  CRITERIA.forEach(c=>{ evalData[c.id]=existing[c.id]||{scale:null,comment:''}; });
+  document.getElementById('evalGreeting').textContent = Object.keys(existing).length>0
+    ? `Hola ${name}! Ya tenés una evaluación guardada. Podés modificarla y volver a enviar.`
+    : `Hola ${name}! Ubicá a Valentina en E1, E2 o E3 en cada uno de los 10 criterios.`;
+  renderEvalForm();
+  updateProgress();
+  document.getElementById('evalForm').classList.add('show');
+  document.getElementById('successMsg').classList.remove('show');
+}
+
+function renderEvalForm() {
+  const el = document.getElementById('evalCriteria');
+  let lastComp='', html='';
+  CRITERIA.forEach(c=>{
+    if(c.comp!==lastComp){ lastComp=c.comp; html+=`<div class="eval-comp-label">${c.comp}</div>`; }
+    const cur=evalData[c.id];
+    html+=`<div class="eval-crit${cur.scale?' answered':''}" id="ecrit-${c.id}">
+      <div class="eval-crit-name">${c.name}</div>
+      <div class="scale-opts">
+        ${['E1','E2','E3'].map(s=>`
+          <button class="scale-opt o-${s.toLowerCase()}${cur.scale===s?' sel':''}" onclick="pickScale('${c.id}','${s}',this)">
+            ${s}<div class="scale-opt-label">${SCALE_LABELS[s]}</div>
+          </button>`).join('')}
+      </div>
+      <div class="comment-lbl">Comentario (opcional)</div>
+      <textarea class="comment-inp" id="cmt-${c.id}" oninput="evalData['${c.id}'].comment=this.value">${cur.comment||''}</textarea>
+    </div>`;
+  });
+  el.innerHTML=html;
+}
+
+function pickScale(id,scale,btn){
+  evalData[id].scale=scale;
+  btn.closest('.scale-opts').querySelectorAll('.scale-opt').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+  const crit = document.getElementById('ecrit-'+id);
+  if(crit) crit.classList.add('answered');
+  updateProgress();
+}
+
+// ---- modal ----
+function openModal() {
+  const missing = CRITERIA.filter(c=>!evalData[c.id].scale);
+  if(missing.length){ alert('Falta ubicar a Valentina en:\n'+missing.map(c=>'• '+c.name).join('\n')); return; }
+  const summary = document.getElementById('modalSummary');
+  summary.innerHTML = CRITERIA.map(c=>`
+    <div class="ms-row">
+      <span class="ms-crit">${c.name}</span>
+      <span class="ms-scale ms-${evalData[c.id].scale.toLowerCase()}">${evalData[c.id].scale}</span>
+    </div>`).join('');
+  document.getElementById('confirmModal').classList.add('show');
+}
+function closeModal() { document.getElementById('confirmModal').classList.remove('show'); }
+
+async function confirmSubmit() {
+  closeModal();
+  const btn=document.getElementById('btnSubmit');
+  btn.disabled=true; btn.textContent='Guardando...';
+  const all=await loadAll();
+  all[currentUser]={...evalData};
+  await saveAll(all);
+  btn.disabled=false; btn.textContent='Revisar y enviar evaluación';
+  document.getElementById('successName').textContent = `¡Listo, ${currentUser}! Tu evaluación fue enviada.`;
+  document.getElementById('evalForm').classList.remove('show');
+  document.getElementById('successMsg').classList.add('show');
+  initEval();
+}
+
+// ---- results ----
+let resultsUnlocked = false;
+
+function unlockResults(){
+  if(document.getElementById('pinInp').value===PIN){
+    document.getElementById('lockBox').style.display='none';
+    document.getElementById('pinErr').style.display='none';
+    resultsUnlocked=true;
+    loadResults();
+  } else { document.getElementById('pinErr').style.display='block'; }
+}
+
+function showResTab(tab) {
+  document.querySelectorAll('.res-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.res-view').forEach(v=>v.classList.remove('show'));
+  document.getElementById('resTab-'+tab).classList.add('active');
+  document.getElementById('resView'+tab).classList.add('show');
+}
+
+async function loadResults(){
+  const all=await loadAll();
+  const panel=document.getElementById('resPanel');
+  panel.classList.add('show');
+  const submitted=Object.keys(all);
+  const total=submitted.length;
+
+  document.getElementById('resSummary').innerHTML=`
+    <div class="res-card"><div class="res-num">${total}</div><div class="res-lbl">Evaluaciones recibidas</div></div>
+    <div class="res-card"><div class="res-num">${NAMES.length-total}</div><div class="res-lbl">Pendientes</div></div>
+    <div class="res-card"><div class="res-num">${NAMES.length}</div><div class="res-lbl">Total participantes</div></div>`;
+
+  // tabs
+  document.getElementById('resTabs').innerHTML=`
+    <button class="res-tab active" id="resTab-Indiv" onclick="showResTab('Indiv')">👤 Evaluación individual</button>
+    <button class="res-tab" id="resTab-General" onclick="showResTab('General')">📊 Resultados generales</button>`;
+
+  document.getElementById('resViewIndiv').classList.add('show');
+  buildIndivSelector(all);
+  buildGeneralResults(all);
+  buildDelGrid();
+}
+
+function buildIndivSelector(all){
+  const grid = document.getElementById('indivGrid');
+  grid.innerHTML = NAMES.map(n=>`
+    <button class="indiv-btn${!all[n]?' no-data':''}" onclick="${all[n]?`showIndiv('${n}')`:''}">
+      ${n}${all[n]?' ✓':''}
+    </button>`).join('');
+}
+
+function showIndiv(name) {
+  document.querySelectorAll('.indiv-btn').forEach(b=>{
+    b.classList.remove('active');
+    if(b.textContent.replace(' ✓','').trim()===name) b.classList.add('active');
+  });
+  const container = document.getElementById('indivResult');
+  // get data
+  loadAll().then(all=>{
+    const data = all[name];
+    if(!data){ container.innerHTML=''; container.classList.remove('show'); return; }
+    let html=`<div class="indiv-header">
+      <div class="indiv-avatar">👤</div>
+      <div><div class="indiv-name">${name}</div><div class="indiv-sub">Evaluación completa — ${CRITERIA.length} criterios</div></div>
+    </div>`;
+    let lastComp='';
+    CRITERIA.forEach(c=>{
+      if(c.comp!==lastComp){
+        lastComp=c.comp;
+        html+=`<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#9AA4BC;margin:16px 0 8px;padding-bottom:6px;border-bottom:1px solid #E5E8EF">${c.comp}</div>`;
+      }
+      const d=data[c.id]||{};
+      const scale=d.scale||'—';
+      const badgeCls=scale!=='—'?`icr-${scale.toLowerCase()}`:'';
+      html+=`<div class="indiv-crit-row">
+        <div class="icr-left">
+          <div class="icr-name">${c.name}</div>
+          ${d.comment?`<div class="icr-comment">"${d.comment}"</div>`:''}
+        </div>
+        <span class="icr-badge ${badgeCls}">${scale}</span>
+      </div>`;
+    });
+    container.innerHTML=html;
+    container.classList.add('show');
+  });
+}
+
+function buildGeneralResults(all){
+  const submitted=Object.keys(all);
+  if(!submitted.length){ document.getElementById('resContent').innerHTML='<p style="color:#7C85A0;padding:20px 0">Todavía no hay evaluaciones.</p>'; return; }
+  let html='';
+  CRITERIA.forEach(c=>{
+    const votes={E1:[],E2:[],E3:[]};
+    submitted.forEach(n=>{ const d=all[n][c.id]; if(d&&d.scale) votes[d.scale].push(n); });
+    const tv=Object.values(votes).flat().length;
+    const comments=submitted.filter(n=>all[n][c.id]&&all[n][c.id].comment).map(n=>({name:n,scale:all[n][c.id].scale,text:all[n][c.id].comment}));
+    const noData=NAMES.filter(n=>!all[n]);
+    html+=`<div class="crit-result-block">
+      <div class="crb-header"><div class="crb-comp">${c.comp}</div><div class="crb-name">${c.name}</div></div>
+      <div class="crb-body">
+        <div class="vote-bars">
+          ${['E1','E2','E3'].map(s=>`<div class="vote-row">
+            <span class="vote-lbl">${s}</span>
+            <div class="vote-track"><div class="vote-fill fill-${s.toLowerCase()}" style="width:${tv?Math.round(votes[s].length/tv*100):0}%"></div></div>
+            <span class="vote-n">${votes[s].length}</span>
+          </div>`).join('')}
+        </div>
+        <div class="vote-names">
+          ${['E1','E2','E3'].map(s=>votes[s].length?`<div class="vn-row"><span class="badge b-${s.toLowerCase()}">${s}</span>${votes[s].join(', ')}</div>`:'').join('')}
+          ${noData.length?`<div class="vn-row"><span class="badge b-nd">—</span><span style="font-size:11px;color:#B0B8CC">${noData.join(', ')}</span></div>`:''}
+        </div>
+      </div>
+      ${comments.length?`<div class="comments-section">${comments.map(c=>`<div class="comment-item"><span class="comment-author">${c.name} (${c.scale}):</span>${c.text}</div>`).join('')}</div>`:''}
+    </div>`;
+  });
+  document.getElementById('resContent').innerHTML=html;
+}
+
+async function exportResults(){
+  const all=await loadAll();
+  const submitted=Object.keys(all);
+  let txt='RESULTADOS — EJERCICIO PLAN DE IMPACTO\n=====================================\n\n';
+  txt+=`Evaluaciones: ${submitted.join(', ')}\n`;
+  txt+=`Pendientes: ${NAMES.filter(n=>!all[n]).join(', ')||'ninguno'}\n\n`;
+  txt+='=== RESULTADOS POR CRITERIO ===\n';
+  CRITERIA.forEach(c=>{
+    const v={E1:[],E2:[],E3:[]};
+    submitted.forEach(n=>{ const d=all[n][c.id]; if(d&&d.scale) v[d.scale].push(n); });
+    txt+=`\n${c.comp.toUpperCase()} · ${c.name}\n`;
+    ['E1','E2','E3'].forEach(s=>{ if(v[s].length) txt+=`  ${s}: ${v[s].join(', ')}\n`; });
+    submitted.forEach(n=>{ const d=all[n][c.id]; if(d&&d.comment) txt+=`  [${n}]: "${d.comment}"\n`; });
+  });
+  txt+='\n\n=== EVALUACIONES INDIVIDUALES ===\n';
+  submitted.forEach(name=>{
+    txt+=`\n--- ${name} ---\n`;
+    CRITERIA.forEach(c=>{ const d=all[name][c.id]; if(d) txt+=`  ${c.name}: ${d.scale||'—'}${d.comment?' — "'+d.comment+'"':''}\n`; });
+  });
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));
+  a.download='resultados-valentina.txt'; a.click();
+}
+
+
+async function buildDelGrid() {
+  const all = await loadAll();
+  const grid = document.getElementById('delGrid');
+  if(!grid) return;
+  grid.innerHTML = NAMES.map(n => `
+    <button class="del-btn${!all[n]?' no-data':''}" onclick="${all[n]?`deleteOne('${n}')`:''}">${n}${all[n]?' ✓':''}</button>`).join('');
+}
+
+async function deleteOne(name) {
+  if(!confirm(`¿Borrar la evaluación de ${name}? Esta acción no se puede deshacer.`)) return;
+  const all = await loadAll();
+  delete all[name];
+  await saveAll(all);
+  buildDelGrid();
+  buildIndivSelector(all);
+  buildGeneralResults(all);
+  buildDelGrid();
+  document.getElementById('resSummary').innerHTML = `
+    <div class="res-card"><div class="res-num">${Object.keys(all).length}</div><div class="res-lbl">Evaluaciones recibidas</div></div>
+    <div class="res-card"><div class="res-num">${NAMES.length - Object.keys(all).length}</div><div class="res-lbl">Pendientes</div></div>
+    <div class="res-card"><div class="res-num">${NAMES.length}</div><div class="res-lbl">Total participantes</div></div>`;
+}
+
+async function resetAll() {
+  if(!confirm('¿Borrar TODAS las evaluaciones? Esta acción no se puede deshacer.')) return;
+  await saveAll({});
+  buildDelGrid();
+  const all = {};
+  buildIndivSelector(all);
+  buildGeneralResults(all);
+  buildDelGrid();
+  document.getElementById('resSummary').innerHTML = `
+    <div class="res-card"><div class="res-num">0</div><div class="res-lbl">Evaluaciones recibidas</div></div>
+    <div class="res-card"><div class="res-num">${NAMES.length}</div><div class="res-lbl">Pendientes</div></div>
+    <div class="res-card"><div class="res-num">${NAMES.length}</div><div class="res-lbl">Total participantes</div></div>`;
+}
+
+renderMatrix();
+initEval();
+</script>
+</body>
+</html>
